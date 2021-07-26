@@ -1,61 +1,72 @@
 from django.shortcuts import render
 from django.views.generic.base import TemplateView
+from .models import Video
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import time
 from selenium.common.exceptions import NoSuchElementException
 
-def get_sub_categories(driver, link):
-    driver.get(link)
+LIMIT = 3
 
-    while(1):
-        htmlelement= driver.find_element_by_tag_name('html')
-        htmlelement.send_keys(Keys.END)
+
+def save_videos(videos, sub_category_name, category_name):
+    for video in videos:
+        new_video = Video(title=video['name'], category_name = category_name, sub_category_name = sub_category_name, url = video['url'])
+        new_video.save()
+
+def crawl_video(driver, sub_category, category_name):
+    driver.get(sub_category['url'])
+
+    for i in range(LIMIT):
+        html_element= driver.find_element_by_tag_name('html')
+        html_element.send_keys(Keys.END)
         time.sleep(1)
-        try:
-            l= driver.find_element_by_id("pageLoadMore")
-        except NoSuchElementException:
-            break
-
-    select = driver.find_element_by_xpath( "//section[@class='lc-content clear']")
-    options = select.find_elements_by_xpath( "//section[@class='list-item li']/div[@class='list-wrapper']/header[@class='list-header']/div[@class='item']/div[@class='inline-flex list-header-title']/h3[@class='list-title']/a")
-
-    options_category_name = []
-    options_category_url = []
-
-    for option in options:
-        options_category_name.append(option.text)
-        options_category_url.append(option.get_attribute('href'))
-
-    # for optionValue in options_category_name:
-    #     print(optionValue)
-
-    # print("______________________________________________________________________")
-
-    for ins in options_category_url:
-        get_sub_categories(driver, ins)
 
 
-class getCategories(TemplateView):
-    template_name = ""
+    videos_object = driver.find_elements_by_xpath( "//div[@class='grid-thumbnail']/div[@class='item grid-item']/div[@class='thumbnail-movie thumbnail-serial ']/div[@class='thumb-details']/div[@class='thumb-title']/a")
+
+    videos = []
+
+    for video in videos_object:
+        videos.append({'name': video.text, 'url':video.get_attribute('href')})
+
+    save_videos(videos, sub_category['name'], category_name)
+
+def crawl_category(driver, category):
+    driver.get(category['url'])
+
+    for i in range(LIMIT):
+        html_element= driver.find_element_by_tag_name('html')
+        html_element.send_keys(Keys.END)
+        time.sleep(1)
+
+
+    sub_categories_object = driver.find_elements_by_xpath( "//section[@class='lc-content clear']/section[@class='list-item li']/div[@class='list-wrapper']/header[@class='list-header']/div[@class='item']/div[@class='inline-flex list-header-title']/h3[@class='list-title']/a")
+
+    sub_categories = []
+
+    for sub_category in sub_categories_object:
+        sub_categories.append({'name': sub_category.text, 'url':sub_category.get_attribute('href')})
+
+    crawl_video(driver, sub_categories[0], category['name'])
+
+
+
+class getCategories():
     driver = webdriver.Firefox()
     driver.get("https://www.aparat.com/")
 
-    elem = driver.find_element_by_xpath("//ul[@class='menu-list']/li[@class='menu-item-link menu-show-more']/a")
-    elem.click()
-    select = driver.find_element_by_xpath( "//div[@id=2]")
-    options = select.find_elements_by_xpath( "//div[@id=2]/ul[@class='menu-list']/li[@class='menu-item-link']/a")
+    more_button = driver.find_element_by_xpath("//ul[@class='menu-list']/li[@class='menu-item-link menu-show-more']/a")
+    more_button.click()
 
-    options_category_name = []
-    options_category_url = []
+    categories_object = driver.find_elements_by_xpath( "//div[@id=2]/ul[@class='menu-list']/li[@class='menu-item-link']/a")
 
-    for option in options:
-        options_category_name.append(option.text)
-        options_category_url.append(option.get_attribute('href'))
+    categories = []
 
-    # for optionValue in options_category_name:
-    #     print(optionValue)
+    for category in categories_object:
+        categories.append({'name': category.text, 'url':category.get_attribute('href')})
+    
 
-    for ins in options_category_url:
-        get_sub_categories(driver, ins)
+    crawl_category(driver, categories[0])
+    
 

@@ -38,7 +38,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'curl_video.apps.CurlVideoConfig',
+    'django_celery_results',
 ]
+
+CELERY_BROKER_URL = 'amqp://localhost'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
