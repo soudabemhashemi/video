@@ -1,6 +1,6 @@
 from django.urls import path
-from .views import getCategories
+from .views import crawl_aparat
 
 urlpatterns = [
-    # path('test1/', getCategories.as_view())
+    path('test1/', crawl_aparat)
 ]

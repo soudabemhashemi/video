@@ -2,7 +2,6 @@ from celery import shared_task
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import time
-from selenium.common.exceptions import NoSuchElementException
 
 @shared_task
 def crawl_aparat():

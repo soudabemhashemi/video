@@ -6,53 +6,61 @@ from selenium.webdriver.common.keys import Keys
 import time
 from selenium.common.exceptions import NoSuchElementException
 
-LIMIT = 3
+SCROLL_LIMIT = 3
+CATEGORY_LIMIT = 0
+SUB_CATEGORY_LIMIT = 1
 
 
-def save_videos(videos, sub_category_name, category_name):
+def save_videos(driver, videos, sub_category_name, category_name):
     for video in videos:
-        new_video = Video(title=video['name'], category_name = category_name, sub_category_name = sub_category_name, url = video['url'])
+        driver.get(video['url'])
+        try:
+            download_link = driver.find_element_by_xpath("//div[@class='dropdown-content']/div[@class='menu-wrapper']/ul[@class='menu-list']/li[@class='menu-item-link link']/a").get_attribute('href')
+        except NoSuchElementException:
+            download_link = ""
+        new_video = Video(title=video['name'], category_name = category_name, sub_category_name = sub_category_name, url = video['url'], download_link=download_link)
         new_video.save()
+
 
 def crawl_video(driver, sub_category, category_name):
     driver.get(sub_category['url'])
 
-    for i in range(LIMIT):
+    for i in range(SCROLL_LIMIT):
         html_element= driver.find_element_by_tag_name('html')
         html_element.send_keys(Keys.END)
         time.sleep(1)
 
-
-    videos_object = driver.find_elements_by_xpath( "//div[@class='grid-thumbnail']/div[@class='item grid-item']/div[@class='thumbnail-movie thumbnail-serial ']/div[@class='thumb-details']/div[@class='thumb-title']/a")
+    videos_object = driver.find_elements_by_xpath( "//div[@class='thumb-details']/div[@class='thumb-title']/a")
 
     videos = []
 
     for video in videos_object:
         videos.append({'name': video.text, 'url':video.get_attribute('href')})
 
-    save_videos(videos, sub_category['name'], category_name)
+    save_videos(driver, videos, sub_category['name'], category_name)
+
 
 def crawl_category(driver, category):
     driver.get(category['url'])
 
-    for i in range(LIMIT):
+    for i in range(SCROLL_LIMIT):
         html_element= driver.find_element_by_tag_name('html')
         html_element.send_keys(Keys.END)
         time.sleep(1)
 
-
-    sub_categories_object = driver.find_elements_by_xpath( "//section[@class='lc-content clear']/section[@class='list-item li']/div[@class='list-wrapper']/header[@class='list-header']/div[@class='item']/div[@class='inline-flex list-header-title']/h3[@class='list-title']/a")
+    sub_categories_object = driver.find_elements_by_xpath( "//div[@class='item']/div[@class='inline-flex list-header-title']/h3[@class='list-title']/a")
 
     sub_categories = []
 
     for sub_category in sub_categories_object:
-        sub_categories.append({'name': sub_category.text, 'url':sub_category.get_attribute('href')})
+        sub_categories.append({'name': sub_category.get_attribute('title'), 'url':sub_category.get_attribute('href')})
 
-    crawl_video(driver, sub_categories[0], category['name'])
+    for i in range(SUB_CATEGORY_LIMIT):
+        crawl_video(driver, sub_categories[i], category['name'])
 
 
 
-class getCategories():
+def crawl_aparat(request):
     driver = webdriver.Firefox()
     driver.get("https://www.aparat.com/")
 
@@ -67,6 +75,6 @@ class getCategories():
         categories.append({'name': category.text, 'url':category.get_attribute('href')})
     
 
-    crawl_category(driver, categories[0])
-    
+    for i in range(CATEGORY_LIMIT):
+        crawl_category(driver, categories[i])
 
