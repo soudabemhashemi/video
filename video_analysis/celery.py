@@ -8,11 +8,9 @@ app = Celery('video_analysis')
 app.config_from_object('django.conf:settings', namespace='CELERY')
 app.autodiscover_tasks()
 
-
-
 app.conf.beat_schedule = {
     "start_crawl_aparat": {
         "task": "curl_video.tasks.crawl_aparat",
-        # "schedule": crontab(hour="*", minute=0)
+        "schedule": 10
     }
 }
