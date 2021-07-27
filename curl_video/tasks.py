@@ -5,7 +5,7 @@ import time
 from selenium.common.exceptions import NoSuchElementException
 from .models import Video
 
-SCROLL_LIMIT = 3
+SCROLL_LIMIT = 10
 SUB_CATEGORY_LIMIT = 1
 
 @shared_task
@@ -25,7 +25,11 @@ def crawl_category(category):
     for sub_category in sub_categories_object:
         sub_categories.append({'name': sub_category.get_attribute('title'), 'url':sub_category.get_attribute('href')})
 
-    for i in range(0, SUB_CATEGORY_LIMIT):
+    local_limit = SUB_CATEGORY_LIMIT
+    if len(sub_categories) < SUB_CATEGORY_LIMIT:
+        local_limit = len(sub_categories)
+
+    for i in range(0, local_limit):
         crawl_video.delay(sub_categories[i], category['name'])
     driver.close()
 
@@ -60,7 +64,13 @@ def save_videos(videos, sub_category_name, category_name):
             download_link = driver.find_element_by_xpath("//div[@class='dropdown-content']/div[@class='menu-wrapper']/ul[@class='menu-list']/li[@class='menu-item-link link']/a").get_attribute('href')
         except NoSuchElementException:
             download_link = ""
-        new_video = Video(title=video['name'], category_name = category_name, sub_category_name = sub_category_name, url = video['url'], download_link=download_link)
+        
+        tags = []
+        tags_object = driver.find_elements_by_xpath("//div[@class='date-section fs-xxs light-60 dark-110']/div[@class='tag video-tag']/a")
+        if tags_object:
+            for tag in tags_object:
+                tags.append(tag.get_attribute('title'))
+        new_video = Video(title=video['name'], category_name = category_name, sub_category_name = sub_category_name, url = video['url'], download_link=download_link, tag = tags)
         new_video.save()
     driver.close()
 

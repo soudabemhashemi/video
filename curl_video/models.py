@@ -8,3 +8,5 @@ class Video(models.Model):
     url = models.URLField(blank=False)
     download_link = models.URLField()
     tag = models.CharField(max_length=100)
+    cover = models.ImageField(default='index.jpeg', upload_to="media/%y")
+    video = models.FileField(default="temp.mp4")

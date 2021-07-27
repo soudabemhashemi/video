@@ -1,0 +1,169 @@
+{% comment %}<html>
+    <body>
+        {%for video_in_same_category in videos_list%}
+            <h3> {{video_in_same_category.0.category_name}}    {{video_in_same_category.0.sub_category_name}} </h3>
+            {%for video in video_in_same_category%}
+                <p> {{video.title}}</p>
+            {%endfor%}
+        {%endfor%}
+
+        <div class="wrap_menu p-l-0-xl">
+            <ul class="main_menu">
+                <li><a href="#">{name1}</a></li>                        
+                <li><a href="#">{name2}</a></li>                        
+            </ul>
+        </div>
+    </body>
+
+</html>
+
+
+<!DOCTYPE html>
+
+<html>
+    <head>
+    <style>
+
+.category{
+    direction:rtl;
+}
+
+.dropbtn {
+    background-color: lightgray;
+    color: black;
+    padding: 16px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+}
+
+.dropdown {
+    position: relative;
+    direction: rtl;
+    display: inline-block;
+}
+
+
+.dropdown-content {
+
+  display: none;
+
+  position: absolute;
+
+  background-color: #f9f9f9;
+
+  min-width: 160px;
+
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+
+  z-index: 1;
+
+}
+
+
+.dropdown-content a {
+
+  color: black;
+
+  padding: 12px 16px;
+
+  text-decoration: none;
+
+  display: block;
+
+}
+
+
+.dropdown-content a:hover {background-color: #f1f1f1}
+
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+
+.dropdown:hover .dropbtn {
+    background-color: gray;
+}
+
+    </style>
+    </head>
+    <body>
+
+​<div class="category">
+    {%for video_in_same_category in videos_list%}
+        <div class="dropdown">
+            <button class="dropbtn">{{video_in_same_category.0.category_name}}</button>
+            <div class="dropdown-content">
+                <a href="#">{{video_in_same_category.0.sub_category_name}}</a>
+            </div>
+        </div>
+    {%endfor%}
+</div>
+
+
+</body>
+
+</html>
+
+​
+ {% endcomment %}
+
+
+{%load static%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>نمایش ویدیو</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+  <link href="https://vjs.zencdn.net/7.10.2/video-js.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.plyr.io/3.6.8/plyr.css" />
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+<div class="jumbotron text-center">
+  <h1>My First Bootstrap Page</h1>
+  <p>Resize this responsive page to see the effect!</p> 
+</div>
+  
+<div class="container text-right">
+  <div class="col  float-right">
+    {%for video_in_same_category in videos_list%}
+        <div class="p-3 my-3 border">
+            <h3>{{video_in_same_category.0.category_name}}</h3>
+            <h5>{{video_in_same_category.0.sub_category_name}}</h5>
+            {%for video in video_in_same_category%}
+                <div class="p-3 row">
+                    {% comment %} <img src={{video.cover.url}} class="rounded float-left" alt="IMG">  {% endcomment %}
+                    <a href="{{video.url}}">{{video.title}}</a>
+                    <p>{{video.tag}}</p>
+                    <a class="fas fa-download" href={{video.download_link}} download></a>
+                    <video 
+                        id="player"
+                        class="video-js"
+                        controls
+                        preload="auto"
+                        width="250"
+                        height="170"
+                        poster=""
+                        data-setup="{}"
+
+                    >
+                        <source src="{{video.video.url}}" type="video/mp4"/>
+                    </video>
+                </div>
+            {%endfor%}
+        </div>
+    {%endfor%}
+  </div>
+</div>
+
+<script src="https://vjs.zencdn.net/7.10.2/video.min.js"></script>
+</body>
+</html>
