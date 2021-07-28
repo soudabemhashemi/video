@@ -3,9 +3,9 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import time
 from selenium.common.exceptions import NoSuchElementException
-from .models import Video
+from .models import Video, CategoryCatalog
 
-SCROLL_LIMIT = 10
+SCROLL_LIMIT = 3
 SUB_CATEGORY_LIMIT = 1
 
 @shared_task
@@ -70,7 +70,13 @@ def save_videos(videos, sub_category_name, category_name):
         if tags_object:
             for tag in tags_object:
                 tags.append(tag.get_attribute('title'))
-        new_video = Video(title=video['name'], category_name = category_name, sub_category_name = sub_category_name, url = video['url'], download_link=download_link, tag = tags)
+        
+        item_in_catalog = CategoryCatalog.objects.filter(category_name = category_name, sub_category_name = sub_category_name)
+        if not item_in_catalog:
+            item_in_catalog = CategoryCatalog(category_name = category_name, sub_category_name = sub_category_name)
+            item_in_catalog.save()
+
+        new_video = Video(title=video['name'], sub_category_id = item_in_catalog[0], url = video['url'], download_link=download_link, tag = tags)
         new_video.save()
     driver.close()
 

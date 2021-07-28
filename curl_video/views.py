@@ -1,16 +1,16 @@
 from django.db.models.aggregates import Count
-from django.shortcuts import render
+from django.shortcuts import render, HttpResponse
 from django.views.generic.base import TemplateView
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from .tasks import crawl_category
-from .models import Video
+from .models import Video, CategoryCatalog
 from django.template import loader
-from django.http import HttpResponse
-
+from django.views.generic import TemplateView
+from django.views.generic.base import RedirectView
 
 SCROLL_LIMIT = 3
-CATEGORY_LIMIT = 3
+CATEGORY_LIMIT = 4
 
 
 def crawl_aparat(request):
@@ -37,22 +37,43 @@ def crawl_aparat(request):
     driver.close()
 
 
-def show_videos(request):
-    categories = (Video.objects
-        .values('category_name','sub_category_name')
-        .annotate(dcount=Count('category_name', 'sub_category_name'))
+class ShowVideos(TemplateView):
+    template_name = "home.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        categories_object = (CategoryCatalog.objects
+        .values('category_name')
+        .annotate(dcount=Count('category_name'))
         )
-    
-    videos = []
-    for category in categories:
-        videos.append(Video.objects.filter(category_name = category['category_name'], sub_category_name = category['sub_category_name']))
-    
-    print(videos)
-    context = {
-        'videos_list': videos
-    }
 
-    template = loader.get_template('home.html')
-    return HttpResponse(template.render(context, request))
+        categories = []
+        for category in categories_object:
+            categories.append(CategoryCatalog.objects.filter(category_name = category['category_name']))
+
+        videos = []
+        for category in categories:
+            for sub_category in category:
+                videos.append(sub_category.my_videos.all())
+        
+        context['videos_list'] = videos
+        context['category_list'] = categories
+
+        return context
 
 
+# class PlayVideo(TemplateView):
+#     template_name = "play-video.html"
+
+# def PlayVideo(request, video_id):
+#     return HttpResponse(video_id)
+
+class PlayVideo(TemplateView):
+    template_name = "play-video.html"
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        video = Video.objects.get(pk=kwargs['pk'])
+        print(video.title)
+        context['video'] = video
+        return context
